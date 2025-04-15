@@ -121,6 +121,7 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
             if (uploadResponse?.secure_url) {
                 imageUrl = uploadResponse.secure_url
             } else {
+                console.log("uploadResponse", uploadResponse);
                 return {
                     errors: {
                         featuredImage: ["Image upload failed"]
@@ -174,6 +175,7 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
 
 
     // start creating the article
+    console.log("Article created successfully");
     revalidatePath('/dashboard') // revalidate the dashboard page to show the new article
     redirect("/dashboard") // redirect to the articles page after creating the article
 }

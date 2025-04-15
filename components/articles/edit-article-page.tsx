@@ -64,30 +64,40 @@ const EditArticlePage: React.FC<EditArticleProps> = ({ article }) => {
                             </select>
                             {formState.errors.category && (<span className='text-red-600 text-sm'>{formState.errors.category}</span>)}
                         </div>
-                        <div className='space-y-2'>
-                            <Label htmlFor='FeaturedImage'>Featured Image</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="featuredImage">Featured Image</Label>
+                            {article.featuredImage && (
+                                <div className="mb-4">
+                                    <Image
+                                        src={article.featuredImage}
+                                        alt="Current featured"
+                                        width={192}
+                                        height={128}
+                                        priority
+                                        style={{ width: "auto", height: "auto" }}
+                                        className="object-cover rounded-md"
+                                    />
+
+
+                                    <p className="text-sm text-muted-foreground mt-2">
+                                        Current featured image
+                                    </p>
+                                </div>
+                            )}
                             <Input
-                                type="file"
-                                id="featureImage"
+                                id="featuredImage"
                                 name="featuredImage"
+                                type="file"
                                 accept="image/*"
                             />
-                            <div className='mb-4'>
-                                {
-                                    article.featuredImage && (
-                                        <Image
-                                            src={article.featuredImage}
-                                            alt="featured Image"
-                                            width={192} // Tailwind w-48 = 12 * 16 = 192px
-                                            height={128} // Tailwind h-32 = 8 * 16 = 128px
-                                            className="rounded-md"
-                                        />
-                                    )
-                                }
-
-                            </div>
-
+                            {formState.errors.featuredImage && (
+                                <span className="font-medium text-sm text-red-500">
+                                    {formState.errors.featuredImage}
+                                </span>
+                            )}
                         </div>
+
+
                         <div className='space-y-2'>
                             <Label>Content</Label>
                             <ReactQuill
@@ -115,7 +125,7 @@ const EditArticlePage: React.FC<EditArticleProps> = ({ article }) => {
 
             </Card>
 
-        </div>
+        </div >
     )
 }
 

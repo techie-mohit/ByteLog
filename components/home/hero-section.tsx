@@ -69,11 +69,13 @@ const HeroSection = () => {
               src="https://tse4.mm.bing.net/th?id=OIP.elHCo9tthwsUPWgmEvYgagHaE8&pid=Api&P=0&h=180"
               alt="Illustration for the blog"
               fill
+              sizes="256px"
+              priority
               className="w-full h-full object-cover transition-transform duration-500 ease-in-out transform hover:scale-105"
             />
           </div>
         </div>
-        
+
       </div>
     </section>
   );
