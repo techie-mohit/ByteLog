@@ -7,15 +7,15 @@ import { Label } from '../ui/label'
 import dynamic from 'next/dynamic'
 import { Button } from '../ui/button'
 import 'react-quill-new/dist/quill.snow.css'
-import { createArticle } from '@/actions/create-article'
-import type { Articles } from '@prisma/client'
-import Image from 'next/image'
+import type { Article } from '@prisma/client'
 import { editArticle } from '@/actions/edit-article'
+import Image from 'next/image';
+
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 type EditArticleProps = {
-    article: Articles;
+    article: Article;
 }
 
 
@@ -75,10 +75,12 @@ const EditArticlePage: React.FC<EditArticleProps> = ({ article }) => {
                             <div className='mb-4'>
                                 {
                                     article.featuredImage && (
-                                        <img
+                                        <Image
                                             src={article.featuredImage}
-                                            alt='featured Image'
-                                            className="w-48 h-32  rounded-md"  // Also add in next.config.ts
+                                            alt="featured Image"
+                                            width={192} // Tailwind w-48 = 12 * 16 = 192px
+                                            height={128} // Tailwind h-32 = 8 * 16 = 128px
+                                            className="rounded-md"
                                         />
                                     )
                                 }
