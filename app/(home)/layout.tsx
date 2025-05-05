@@ -3,13 +3,11 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const user = await currentUser();
-    console.log(user);
-    if (!user) {
-        // Redirect user to login page if they are not authenticated
-        return <div>Error: User not authenticated. Please log in.</div>;
-    }
 
-    const email = user.emailAddresses[0]?.emailAddress ?? " ";
+    if (!user) return <>{children}</>;
+
+
+    const email = user.emailAddresses[0]?.emailAddress ?? "";
     if (!email) {
         console.error("No email found for the user");
         return <div>Error: Missing user email.</div>;
@@ -17,19 +15,21 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
     try {
         const existingUser = await prisma.user.findUnique({
-            where: { email }, // assumes email is unique in your schema
+            where: { email },
         });
 
         if (existingUser) {
-            // Update the Clerk ID if needed
-            await prisma.user.upsert({
+            await prisma.user.update({
                 where: { email },
-                update: {
+                data: {
                     clerkUserId: user.id,
                     name: user.fullName ?? undefined,
                     imageUrl: user.imageUrl ?? undefined,
                 },
-                create: {
+            });
+        } else {
+            await prisma.user.create({
+                data: {
                     name: user.fullName as string,
                     clerkUserId: user.id,
                     email,
@@ -39,7 +39,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         }
     } catch (error) {
         console.error("Error syncing user with database:", error);
-        return <div>Error syncing user.</div>
+        return <div>Error syncing user.</div>;
     }
 
     return <div>{children}</div>;

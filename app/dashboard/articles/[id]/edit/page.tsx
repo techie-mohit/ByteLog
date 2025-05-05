@@ -3,22 +3,22 @@ import { prisma } from '@/lib/prisma'
 import React from 'react'
 
 type EditArticleParams = {
-    params: Promise<{id:string}>     // to get edit page ki id from url 
+  params: { id: string }
 }
 
-const EditPage : React.FC<EditArticleParams> = async({params}) => {
+const EditPage: React.FC<EditArticleParams> = async ({ params }) => {
+  const id  = params.id;
 
-    const id = (await params).id;
-    const article = await prisma.article.findUnique({
-        where:{
-            id,
-        }
-    })
+  const article = await prisma.article.findUnique({
+    where: { id },
+  })
+  console.log('article', article)
 
-    if(!article) return <h1>Article Not Founf For This {id}</h1>
+  if (!article) return <h1>Article Not Found for ID: {id}</h1>
+
   return (
     <div>
-      <EditArticlePage article ={article}/>
+      <EditArticlePage article={article} />
     </div>
   )
 }

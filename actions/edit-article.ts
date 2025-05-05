@@ -1,12 +1,10 @@
 "use server"
 import { auth } from "@clerk/nextjs/server"
-import { redirect } from "next/navigation"
 import { z } from "zod"
-
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 
 cloudinary.config({
@@ -33,16 +31,18 @@ type CreateArticleFormState = {
     }
 }
 
-export const editArticle = async (articleId: string, prevState: CreateArticleFormState, formData: FormData): Promise<CreateArticleFormState> => {
-    // Sanitize content input
-    const rawContent = formData.get("content")?.toString() || "";
-    const cleanedContent = rawContent.replace(/<(.|\n)*?>/g, "").trim();
+export const editArticle = async (
+    articleId: string, 
+    prevState: CreateArticleFormState, 
+    formData: FormData
+): Promise<CreateArticleFormState> => {
+    
 
     const result = createArticleSchema.safeParse({
         title: formData.get("title"),
         category: formData.get("category"),
 
-        content: cleanedContent // use cleaned version here
+        content: formData.get("content") // use cleaned version here
     });
 
     if (!result.success) {
@@ -59,6 +59,7 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
             }
         }
     }
+    // console.log("userId", userId);
 
     const existingArticle = await prisma.article.findUnique({
         where: { id: articleId }
@@ -77,6 +78,7 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
             clerkUserId: userId
         }
     })
+    console.log("existingUser", existingUser);
 
     if (!existingUser || existingArticle.authorId !== existingUser.id) {
         return {
@@ -88,58 +90,53 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
 
 
     // start editing file
-    let imageUrl = existingArticle.featuredImage; // default to existing image URL
-    const entry = formData.get("featuredImage");
+    let imageUrl = existingArticle.featuredImage; // Default to the existing image
 
-    let imageFile: File | null = null;
-    if (entry instanceof File && entry.size > 0) {
-        imageFile = entry;
-    }
-
-    if (imageFile) {
+    // ✅ Check if a new image is provided
+    const imageFile = formData.get("featuredImage") as File | null;
+    if (imageFile && imageFile.name !== "undefined") {
         try {
             const arrayBuffer = await imageFile.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
 
-            const uploadResponse: UploadApiResponse | undefined = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        resource_type: "auto"
-                    },
-                    (error, result) => {
-                        if (error) {
-                            reject(error)
+            const uploadResult: UploadApiResponse | undefined = await new Promise(
+                (resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { resource_type: "image" },
+                        (error, result) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                resolve(result);
+                            }
                         }
-                        else {
-                            resolve(result)
-                        }
-                    }
-                );
-
-                uploadStream.end(buffer);
-            });
-            if (uploadResponse?.secure_url) {
-                imageUrl = uploadResponse.secure_url
-            } else {
-                console.log("uploadResponse", uploadResponse);
-                return {
-                    errors: {
-                        featuredImage: ["Image upload failed"]
-                    }
+                    );
+                    uploadStream.end(buffer);
                 }
+            );
 
+            if (uploadResult?.secure_url) {
+                imageUrl = uploadResult.secure_url;
+            } else {
+                return {
+                    errors: { featuredImage: ["Failed to upload image. Please try again."] },
+                };
             }
         } catch (error) {
-        console.log(error);
-            return {
-                errors: {
-                    formError: ["Error  uploading  failed please try again"]
+            if(error instanceof Error){
+                return {
+                    errors:{
+                        formError:[error.message]
+                    }
                 }
+            }else{
+                return {
+                    errors: { formError: ["Error uploading image. Please try again."] },
+                };
             }
-
         }
-
     }
+
 
     try {
         await prisma.article.update({
@@ -174,8 +171,10 @@ export const editArticle = async (articleId: string, prevState: CreateArticleFor
 
 
 
-    // start creating the article
-    console.log("Article created successfully");
-    revalidatePath('/dashboard') // revalidate the dashboard page to show the new article
-    redirect("/dashboard") // redirect to the articles page after creating the article
+    console.log("Article updated successfully");
+    revalidatePath('/dashboard'); // revalidate the dashboard page to show the updated article
+
+    // Instead of redirecting, return a success indicator to the client.
+    redirect("/dashboard"); // redirect to the articles page after creating the article
+
 }

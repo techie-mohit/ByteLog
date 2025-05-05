@@ -4,12 +4,12 @@ import React, { FormEvent, startTransition, useActionState, useState } from 'rea
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
-import dynamic from 'next/dynamic'
 import { Button } from '../ui/button'
 import 'react-quill-new/dist/quill.snow.css'
 import type { Article } from '@prisma/client'
 import { editArticle } from '@/actions/edit-article'
 import Image from 'next/image';
+import dynamic from 'next/dynamic'
 
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
